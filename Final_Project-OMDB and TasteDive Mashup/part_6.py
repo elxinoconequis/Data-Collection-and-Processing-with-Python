@@ -70,15 +70,14 @@ def get_movie_data(movie_title=""):
     params["r"]="json"
     resp=requests_with_caching.get(base_url,params)
     info_dict=resp.json()
-    #print(info_dict,"\ntype:", type(info_dict))
     return info_dict
 
 #5
 def get_movie_rating(req_dict={}):
-    print("...getting rating...of...: '{}'".format(req_dict["Title"]))
+    print("    ...getting rating...of...: '{}'".format(req_dict["Title"]))
     rating=0
-    #print(json.dumps(req_dict,indent=4))
-    #print("req_dict['Ratings']: \n",req_dict["Ratings"])
+    print(json.dumps(req_dict,indent=4))
+    print("req_dict['Ratings']: ",req_dict["Ratings"])
     
     for source in req_dict["Ratings"]:
         #print(source["Source"])
@@ -86,12 +85,18 @@ def get_movie_rating(req_dict={}):
             print("> Rotten Tomatoes rating: ",source["Value"]) 
             rating_str=source["Value"]
             #Process this string into a int
-            rating=int(rating_str.replace("%",""))                
+            rating=int(rating_str.replace("%",""))
+            break
+        else:
+            print("> No Rotten Tomators rating found. Default=0")
+            continue # goes to the beginning of the loop        
     return rating
 
+    
 #6
 def get_sorted_recommendations(lst_mov_titles=[]):
     print("...getting sorted recomendations...\n")
+    unsorted_lst=[]
     sorted_lst=[]
     lst_rel_titles=[]
     rating=0
@@ -110,8 +115,17 @@ def get_sorted_recommendations(lst_mov_titles=[]):
         rating=get_movie_rating(movie_dict[movie])  # takes in dict, returns integer
         print("    Rating: ",rating)
         # Appending movies that are in rotten tomatoes
-        if (rating !=0):
-            sorted_lst.append([movie_dict[movie]["Title"],rating])
-
+        if (rating !=None):
+            unsorted_lst.append([movie,rating])
+            
+    print("\n-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/")
+    print("Unsorted list: {}\nType: {} \nLength: {}".format(unsorted_lst,type(unsorted_lst),len(unsorted_lst)))
+    # Sorting list of rotten tomatoes movies &  Break ties in reverse alphabetical order 
+    sorted_lst=sorted(unsorted_lst,key=lambda unsorted_lst:(unsorted_lst[1],unsorted_lst[0]), reverse= True)
+    #usin list ocmprehension we make aun auxiliary variable
+    a=[sublist[0] for sublist in sorted_lst]
+    print("a: ",a)
+    sorted_lst.clear()
+    sorted_lst=a         
     print("\n>Sorted List: ",sorted_lst)
     return sorted_lst
